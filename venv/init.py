@@ -3,7 +3,7 @@ import itertools
 import os
 
 # Folder Path
-path = r'test'
+path = r'2021-archive'
 pool = (
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
     'w', 'x', 'y', 'z')
@@ -23,58 +23,41 @@ def read_text_file(file_path, input):
             lst = list(df.loc[df['line content'].str.contains(i[0], na=False), 'line content'])
             if len(lst) != 0:
                 for item in lst:
-                    print(item+" score: "+str(len(input)*2-int(i[1]))+" location: "+file_path)
+                    print(item + " score: " + str(len(input) * 2 - int(i[1])) + " location: " + file_path)
                 break
     else:
         for item in lst:
-            print(item + " score: " + str(len(input)*2) + " location: " + file_path)
-
+            print(item + " score: " + str(len(input) * 2) + " location: " + file_path)
 
 
 def full_combinations(statement):
-    for letter in pool: #switch
+    for letter in pool:  # switch
         for i in range(len(statement)):
             temp = statement[:i] + letter + statement[i:]
             score_down = calculate_char(statement, temp) + 2
             yield temp, score_down
-    for letter in pool: #add
+    for letter in pool:  # add
         for i in range(len(statement)):
             temp = statement[:i] + letter + statement[i + 1:]
-            score_down = calculate_char(statement, temp)*2 + 2 #get down also for worng char
+            score_down = calculate_char(statement, temp) * 2 + 2  # get down also for worng char
             yield temp, score_down
-    for tup in itertools.combinations(statement, len(statement) - 1): #sub
+    for tup in itertools.combinations(statement, len(statement) - 1):  # sub
         temp = ''.join(tup)
         score_down = calculate_char(statement, temp) * 2 + 2
         yield temp, score_down
 
+
 def calculate_char(original, copy):
-    i = 0
-    if len(original) > len(copy):
-        i = 0
-        j = 0
-        while i < 5:
-            if original[i] != copy[j]:
-                return 5-i
-
-            else:
-                i += 1
-                j += 1
-
-    elif len(original) < len(copy):
-        pass
-    else:
-        pass
-    while i < len(original) or i < len(copy):
-
-
     for i in range(len(original)):
-        if original[i] != copy[i] and i < len(original) and i < len(copy):
-            if i>=5:
+        if i < len(original) and i < len(copy) and original[i] != copy[i]:
+            if i >= 5:
                 return 1
-            return 5-i
-    if i >= 5:
+            return 5 - i
+    if len(original) >= 5 and len(copy) >= 5:
         return 1
-    return 5-i
+    min_num = min(len(original), len(copy))
+    return min_num
+
 
 def prepend_line(file_name, line):
     """ Insert given string as a new line at the beginning of a file """
@@ -106,7 +89,6 @@ def startup(input):
 def main():
     a = input("enter statement: ")
     startup(a)
-
 
 
 if __name__ == '__main__':
