@@ -9,8 +9,9 @@ pool = (
     'w', 'x', 'y', 'z')
 main_lst = []
 
+
 class AutoCompleteData:
-    def __init__(self, cs, st, o,s):
+    def __init__(self, cs, st, o, s):
         self.completed_sentence = cs
         self.source_text = st
         self.offset = o
@@ -20,7 +21,6 @@ class AutoCompleteData:
     source_text: str
     offset: int
     score: int
-
 
 
 # Read text File
@@ -33,34 +33,39 @@ def read_text_file(file_path, input):
 
 
 def searchIt(file_path, input):
-    df = pd.read_csv(file_path,low_memory=False)
+    df = pd.read_csv(file_path, low_memory=False)
     lst = list(df.loc[df['line'].str.contains(input, na=False), 'line'])
     if len(lst) == 0:
         for i in full_combinations(input):
             lst = list(df.loc[df['line'].str.contains(i[0], na=False), 'line'])
             if len(lst) != 0:
                 for item in lst:
-                    instance = AutoCompleteData(item,file_path,0, len(input) * 2 - int(i[1]) )
+                    instance = AutoCompleteData(item, file_path, 0, len(input) * 2 - int(i[1]))
                     main_lst.appeand(instance)
-                    #print(item + " score: " + str(len(input) * 2 - int(i[1])) + " location: " + file_path)
+                    # print(item + " score: " + str(len(input) * 2 - int(i[1])) + " location: " + file_path)
                 break
     else:
         for item in lst:
             instance = AutoCompleteData(item, file_path, 0, len(input) * 2)
             main_lst.append(instance)
-            #print(item + " score: " + str(len(input) * 2) + " location: " + file_path)
+            # print(item + " score: " + str(len(input) * 2) + " location: " + file_path)
+
 
 def mySort(instance):
     return instance.score
 
+
 def finish_search():
-    main_lst.sort(key=mySort)
-    for item in main_lst:
-        print(item.completed_sentence)
-        print(item.source_text)
-        print(item.offset)
-        print(item.score)
+    main_lst.sort(key=mySort, reverse=True)
+    counter = min(len(main_lst), 5)
+    for i in range(counter):
+        print(main_lst[i].completed_sentence)
+        print(main_lst[i].source_text)
+        print(main_lst[i].offset)
+        print(main_lst[i].score)
         print('\n')
+
+
 
 def superFastSearch(path, input):
     for filename in os.listdir(path):
@@ -75,7 +80,7 @@ def superFastSearch(path, input):
 def full_combinations(statement):
     for letter in pool:  # switch
         for i in range(len(statement)):
-            temp = statement[:i] + letter + statement[1+i:]
+            temp = statement[:i] + letter + statement[1 + i:]
             score_down = calculate_char(statement, temp) + 2
             yield temp, score_down
     for letter in pool:  # add
@@ -125,24 +130,26 @@ def checkOver(path, input):
 
 
 def startup(input):
-    #checkOver(path, input)
-    superFastSearch('fixed/'+path, input)
+    # checkOver(path, input)
+    superFastSearch('fixed/' + path, input)
 
 
 def main():
+    # a = input("enter statement: ")
+    # startup(a)
+    # finish_search()
+    temp = ""
     a = input("enter statement: ")
-    startup(a)
-    finish_search()
-    """temp=""
-    a = input("enter statement: ")
-    while(a!='#'):
+    while (a != '#'):
         a.lower().strip()
-        #agnore multy space
+        # agnore multy space
         while "  " in a:
-            a=a.replace("  "," ")
+            a = a.replace("  ", " ")
         temp = temp + a
         startup(temp)
-        a = input(temp)"""
+        finish_search()
+        a = input(temp)
+
 
 if __name__ == '__main__':
     main()
