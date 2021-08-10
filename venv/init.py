@@ -8,6 +8,8 @@ pool = (
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
     'w', 'x', 'y', 'z')
 main_lst = []
+word_found = ""
+word_found_bool = False
 
 
 class AutoCompleteData:
@@ -29,22 +31,32 @@ def read_text_file(file_path, input):
     new_dir = f"fixed/{os.path.dirname(file_path)}"
     if not os.path.isdir(new_dir):
         os.makedirs(new_dir)
+    counter = 1
+    while (len(read_file.columns) > 1):
+        read_file['line content'] = read_file['line content'] + read_file[f'Unnamed: {counter}']
+        del read_file[f'Unnamed: {counter}']
+        counter += 1
     read_file.to_csv(f"fixed/{file_path[:-3]}csv")
 
 
 def searchIt(file_path, input):
+    global word_found, word_found_bool
     df = pd.read_csv(file_path, low_memory=False)
-    lst = list(df.loc[df['line'].str.contains(input, na=False), 'line'])
-    if len(lst) == 0:
+    input = word_found
+    lst = list(df.loc[df['line content'].str.contains(input, na=False), 'line content'])
+    if len(lst) == 0 and not word_found_bool:
         for i in full_combinations(input):
-            lst = list(df.loc[df['line'].str.contains(i[0], na=False), 'line'])
+            lst = list(df.loc[df['line content'].str.contains(i[0], na=False), 'line content'])
             if len(lst) != 0:
+                word_found = i[0]
+                word_found_bool = True
                 for item in lst:
                     instance = AutoCompleteData(item, file_path, 0, len(input) * 2 - int(i[1]))
-                    main_lst.appeand(instance)
+                    main_lst.append(instance)
                     # print(item + " score: " + str(len(input) * 2 - int(i[1])) + " location: " + file_path)
                 break
-    else:
+    elif len(lst) != 0:
+        word_found_bool = True
         for item in lst:
             instance = AutoCompleteData(item, file_path, 0, len(input) * 2)
             main_lst.append(instance)
@@ -130,7 +142,9 @@ def checkOver(path, input):
 
 
 def startup(input):
-    # checkOver(path, input)
+    global word_found
+    #checkOver(path, input)
+    word_found = input
     superFastSearch('fixed/' + path, input)
 
 
@@ -146,6 +160,8 @@ def main():
         while "  " in a:
             a = a.replace("  ", " ")
         temp = temp + a
+        word_found = ""
+        main_lst = []
         startup(temp)
         finish_search()
         a = input(temp)
