@@ -26,7 +26,7 @@ class AutoCompleteData:
 
 
 # Read text File
-def read_text_file(file_path, input):
+def read_text_file(file_path):
     read_file = pd.read_fwf(file_path)
     new_dir = f"fixed/{os.path.dirname(file_path)}"
     if not os.path.isdir(new_dir):
@@ -43,23 +43,28 @@ def searchIt(file_path, input):
     global word_found, word_found_bool
     df = pd.read_csv(file_path, low_memory=False)
     input = word_found
+    #input to lst all sintext thet contain "input" in row line content
     lst = list(df.loc[df['line content'].str.contains(input, na=False), 'line content'])
-    if len(lst) == 0 and not word_found_bool:
+    if len(lst) == 0 and not word_found_bool: # if don't find anything make change and serching again
         for i in full_combinations(input):
             lst = list(df.loc[df['line content'].str.contains(i[0], na=False), 'line content'])
             if len(lst) != 0:
                 word_found = i[0]
                 word_found_bool = True
-                for item in lst:
+                for item in lst: # add the find to main_lst list
                     instance = AutoCompleteData(item, file_path, 0, len(input) * 2 - int(i[1]))
                     main_lst.append(instance)
+                    if len(main_lst)>5:
+                        break
                     # print(item + " score: " + str(len(input) * 2 - int(i[1])) + " location: " + file_path)
                 break
     elif len(lst) != 0:
         word_found_bool = True
-        for item in lst:
+        for item in lst: # add the find to main_lst list
             instance = AutoCompleteData(item, file_path, 0, len(input) * 2)
             main_lst.append(instance)
+            if len(main_lst) > 5:
+                break
             # print(item + " score: " + str(len(input) * 2) + " location: " + file_path)
 
 
@@ -69,13 +74,14 @@ def mySort(instance):
 
 def finish_search():
     main_lst.sort(key=mySort, reverse=True)
-    counter = min(len(main_lst), 5)
+    counter = min(len(main_lst), 5) #make shore print maximum gust 5 element
     for i in range(counter):
         print(main_lst[i].completed_sentence)
         print(main_lst[i].source_text)
         print(main_lst[i].offset)
         print(main_lst[i].score)
         print('\n')
+    main_lst.clear()
 
 
 
@@ -95,7 +101,7 @@ def full_combinations(statement):
             temp = statement[:i] + letter + statement[1 + i:]
             score_down = calculate_char(statement, temp) + 2
             yield temp, score_down
-    for letter in pool:  # add
+    for letter in pool:  # add char to statment
         for i in range(len(statement)):
             temp = statement[:i] + letter + statement[i:]
             score_down = calculate_char(statement, temp) * 2  # get down also for worng char
@@ -130,15 +136,15 @@ def prepend_line(file_name, line):
             write_obj.write(selected_line)
 
 
-def checkOver(path, input):
+def initialization(path):
     for filename in os.listdir(path):
         f = os.path.join(path, filename)
         # checking if it is a file
         if os.path.isfile(f):
             prepend_line(f, 'line content')
-            read_text_file(f, input)
+            read_text_file(f)
         else:
-            checkOver(f, input)
+            initialization(f)
 
 
 def startup(input):
@@ -149,9 +155,7 @@ def startup(input):
 
 
 def main():
-    # a = input("enter statement: ")
-    # startup(a)
-    # finish_search()
+    # initialization(path)
     temp = ""
     a = input("enter statement: ")
     while (a != '#'):
